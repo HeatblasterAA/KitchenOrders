@@ -39,7 +39,8 @@ export default function Dashboard() {
       setDaily(dailyRes.data ?? 0);
       setMonthly(monthlyRes.data ?? 0);
 
-    } catch (err) {
+    } catch {
+
       alert("Failed to load dashboard metrics");
     } finally {
       setLoading(false);
