@@ -343,11 +343,12 @@ export default function Orders() {
             {/* ACTIONS */}
             <div className="flex flex-wrap gap-2 mt-3">
 
-              {!order.delivered && !isEditing && (
+              {!order.delivered && !order.paid && !isEditing && (
 
                 <button
+                  disabled={workingId === order.id}
                   onClick={() => deliver(order.id)}
-                  className="bg-green-600 text-white px-3 py-1 rounded">
+                  className="bg-green-600 text-white px-4 py-2 rounded">
                   Delivered
                 </button>
 
@@ -356,6 +357,7 @@ export default function Orders() {
               {order.delivered && !order.paid && !isEditing && (
 
                 <button
+                  disabled={workingId === order.id}
                   onClick={() => pay(order.id)}
                   className="bg-purple-600 text-white px-3 py-1 rounded">
                   Mark Paid
@@ -373,6 +375,7 @@ export default function Orders() {
                   </button>
 
                   <button
+                    disabled={workingId === order.id}
                     onClick={() => remove(order.id)}
                     className="bg-red-600 text-white px-3 py-1 rounded">
                     Delete
@@ -385,6 +388,7 @@ export default function Orders() {
 
                 <>
                   <button
+                    disabled={workingId === order.id}
                     onClick={() => saveEdit(order)}
                     className="bg-green-600 text-white px-3 py-1 rounded">
                     Save

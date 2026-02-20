@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [rangeLoading, setRangeLoading] = useState(false);
 
-  const [error, setError] = useState("");
+
 
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Dashboard() {
       setMonthly(monthlyRes.data ?? 0);
 
     } catch (err) {
-      setError("Failed to load dashboard");
+      alert("Failed to load dashboard metrics");
     } finally {
       setLoading(false);
     }
