@@ -2,3 +2,5 @@ spring:
   mongodb:
     uri: mongodb+srv://HeatblasterAA:Siss1234%23@cluster0.sa68qb2.mongodb.net/kitchenOrders
     database: kitchenOrders
+server:
+  port: ${PORT:8080}
