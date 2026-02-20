@@ -1,0 +1,2 @@
+public class abcd {
+}
