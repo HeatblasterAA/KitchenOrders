@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:8080";
+const API = "https://kitchenorders-production.up.railway.app";
 
 export async function login(username, password) {
   const res = await axios.post(`${API}/auth/login`, {
