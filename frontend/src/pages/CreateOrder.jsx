@@ -13,17 +13,26 @@ export default function CreateOrder() {
 
   const navigate = useNavigate();
 
-
   useEffect(() => {
     loadMenu();
   }, []);
 
-
   const loadMenu = async () => {
-    const res = await getMenu();
-    setMenu(res.data);
+    try {
+      const res = await getMenu();
+      setMenu(res.data || []);
+    } catch (err) {
+      console.error("Failed to load menu", err);
+      alert("Failed to load menu");
+    }
   };
 
+  // format YYYY-MM-DD -> DD/MM/YYYY
+  const formatDateDDMMYYYY = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
 
   const toggleItem = (menuItemId) => {
 
@@ -45,7 +54,6 @@ export default function CreateOrder() {
     }
   };
 
-
   const updateQty = (menuItemId, qty) => {
 
     if (qty < 1) return;
@@ -59,17 +67,23 @@ export default function CreateOrder() {
     );
   };
 
-
-  // FIXED submitOrder inside component
   const submitOrder = async () => {
 
-    if (!customerName) {
-      alert("Enter customer name");
+    // customer name validation
+    if (!customerName.trim()) {
+      alert("Customer name is required");
       return;
     }
 
+    // items validation
     if (items.length === 0) {
       alert("Select at least one item");
+      return;
+    }
+
+    // DATE VALIDATION (MANDATORY)
+    if (!deliveryDate) {
+      alert("Delivery date is required");
       return;
     }
 
@@ -77,12 +91,15 @@ export default function CreateOrder() {
 
       setLoading(true);
 
-      // Build full order items with name and price
       const fullItems = items.map(item => {
 
         const menuItem = menu.find(
           m => m.id === item.menuItemId
         );
+
+        if (!menuItem) {
+          throw new Error("Menu item not found");
+        }
 
         return {
           menuItemId: item.menuItemId,
@@ -94,11 +111,9 @@ export default function CreateOrder() {
       });
 
       await createOrder({
-        customerName,
+        customerName: customerName.trim(),
         items: fullItems,
-        deliverBy: deliveryDate
-          ? deliveryDate + "T00:00:00"
-          : null
+        deliverBy: deliveryDate + "T00:00:00"
       });
 
       navigate("/orders");
@@ -113,9 +128,7 @@ export default function CreateOrder() {
       setLoading(false);
 
     }
-
   };
-
 
   return (
     <div className="p-4">
@@ -124,6 +137,7 @@ export default function CreateOrder() {
         Create Order
       </h1>
 
+      {/* Customer Name */}
       <input
         value={customerName}
         onChange={(e) =>
@@ -131,8 +145,10 @@ export default function CreateOrder() {
         }
         placeholder="Customer Name"
         className="border p-2 w-full mb-4"
+        required
       />
 
+      {/* Menu */}
       {menu.map(m => {
 
         const selected = items.find(
@@ -170,13 +186,11 @@ export default function CreateOrder() {
 
                   <button
                     onClick={() => {
-
                       if (qty === 1) {
                         toggleItem(m.id);
                       } else {
                         updateQty(m.id, qty - 1);
                       }
-
                     }}
                     className="bg-red-500 text-white w-8 h-8 rounded"
                   >
@@ -206,7 +220,7 @@ export default function CreateOrder() {
         );
       })}
 
-
+      {/* REQUIRED DATE INPUT */}
       <input
         type="date"
         value={deliveryDate}
@@ -214,9 +228,17 @@ export default function CreateOrder() {
           setDeliveryDate(e.target.value)
         }
         className="border p-2 w-full mt-4"
+        required
       />
 
+      {/* Display formatted date */}
+      {deliveryDate && (
+        <div className="mt-2 text-gray-600">
+          Delivery Date: {formatDateDDMMYYYY(deliveryDate)}
+        </div>
+      )}
 
+      {/* Submit */}
       <button
         onClick={submitOrder}
         disabled={loading}

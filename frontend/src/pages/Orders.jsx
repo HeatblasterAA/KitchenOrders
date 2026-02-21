@@ -25,62 +25,128 @@ export default function Orders() {
     loadMenu();
   }, []);
 
+  // Format: Friday
+  const getDayName = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString(
+      "en-US",
+      { weekday: "long" }
+    );
+  };
+
+  // Format: DD/MM/YYYY
+  const formatDateDDMMYYYY = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString(
+      "en-GB"
+    );
+  };
+
   const loadOrders = async () => {
     try {
+
       setLoading(true);
+
       const res = await getOrders();
-      setOrders(res.data);
+
+      const filteredSorted =
+        (res.data || [])
+          .filter(order => !order.paid)
+          .sort(
+            (a, b) =>
+              new Date(a.deliverBy) -
+              new Date(b.deliverBy)
+          );
+
+      setOrders(filteredSorted);
+
     } catch {
+
       alert("Failed to load orders");
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
   const loadMenu = async () => {
-    const res = await getMenu();
-    setMenu(res.data);
+    try {
+      const res = await getMenu();
+      setMenu(res.data || []);
+    } catch {
+      alert("Failed to load menu");
+    }
   };
 
   // DELIVERY
   const deliver = async (id) => {
     try {
+
       setWorkingId(id);
+
       await markDelivered(id);
+
       loadOrders();
+
     } catch {
+
       alert("Failed");
+
     } finally {
+
       setWorkingId(null);
+
     }
   };
 
   // PAYMENT
   const pay = async (id) => {
     try {
+
       setWorkingId(id);
+
       await markPaid(id);
-      loadOrders();
+
+      // Remove immediately from UI
+      setOrders(prev =>
+        prev.filter(order => order.id !== id)
+      );
+
     } catch {
+
       alert("Failed");
+
     } finally {
+
       setWorkingId(null);
+
     }
   };
 
   // DELETE
   const remove = async (id) => {
 
-    if (!window.confirm("Delete order?")) return;
+    if (!window.confirm("Delete order?"))
+      return;
 
     try {
+
       setWorkingId(id);
+
       await deleteOrder(id);
+
       loadOrders();
+
     } catch {
+
       alert("Failed");
+
     } finally {
+
       setWorkingId(null);
+
     }
   };
 
@@ -103,19 +169,25 @@ export default function Orders() {
     setEditingId(null);
   };
 
-  // EDIT + 
+  // INCREASE QTY
   const increaseQty = (menuItem) => {
 
-    const exists = editItems.find(
-      i => i.menuItemId === menuItem.id
-    );
+    const exists =
+      editItems.find(
+        i =>
+          i.menuItemId === menuItem.id
+      );
 
     if (exists) {
 
       setEditItems(
         editItems.map(i =>
           i.menuItemId === menuItem.id
-            ? { ...i, quantity: i.quantity + 1 }
+            ? {
+              ...i,
+              quantity:
+                i.quantity + 1
+            }
             : i
         )
       );
@@ -135,12 +207,14 @@ export default function Orders() {
     }
   };
 
-  // EDIT -
+  // DECREASE QTY
   const decreaseQty = (menuItemId) => {
 
-    const item = editItems.find(
-      i => i.menuItemId === menuItemId
-    );
+    const item =
+      editItems.find(
+        i =>
+          i.menuItemId === menuItemId
+      );
 
     if (!item) return;
 
@@ -148,7 +222,9 @@ export default function Orders() {
 
       setEditItems(
         editItems.filter(
-          i => i.menuItemId !== menuItemId
+          i =>
+            i.menuItemId !==
+            menuItemId
         )
       );
 
@@ -156,8 +232,13 @@ export default function Orders() {
 
       setEditItems(
         editItems.map(i =>
-          i.menuItemId === menuItemId
-            ? { ...i, quantity: i.quantity - 1 }
+          i.menuItemId ===
+            menuItemId
+            ? {
+              ...i,
+              quantity:
+                i.quantity - 1
+            }
             : i
         )
       );
@@ -192,9 +273,12 @@ export default function Orders() {
     }
   };
 
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
+  if (loading)
+    return (
+      <div className="p-4">
+        Loading...
+      </div>
+    );
 
   return (
 
@@ -202,15 +286,20 @@ export default function Orders() {
 
       {orders.map(order => {
 
-        const isEditing = editingId === order.id;
+        const isEditing =
+          editingId === order.id;
 
         const itemsToShow =
-          isEditing ? editItems : order.items;
+          isEditing
+            ? editItems
+            : order.items;
 
         const total =
           itemsToShow.reduce(
             (sum, i) =>
-              sum + i.price * i.quantity,
+              sum +
+              i.price *
+              i.quantity,
             0
           );
 
@@ -218,11 +307,27 @@ export default function Orders() {
 
           <div
             key={order.id}
-            className="border rounded-xl p-4 bg-white shadow">
+            className="border rounded-xl p-4 bg-white shadow"
+          >
 
             {/* CUSTOMER */}
             <div className="text-lg font-bold">
               {order.customerName}
+            </div>
+
+            {/* DELIVERY DAY */}
+            <div className="text-sm text-gray-600 mt-1">
+              Order for:{" "}
+              <span className="font-semibold">
+                {getDayName(
+                  order.deliverBy
+                )}
+              </span>{" "}
+              (
+              {formatDateDDMMYYYY(
+                order.deliverBy
+              )}
+              )
             </div>
 
             {/* STATUS */}
@@ -234,7 +339,9 @@ export default function Orders() {
                   : "text-orange-600"
               }>
                 Delivery:
-                {order.delivered ? " Delivered" : " Pending"}
+                {order.delivered
+                  ? " Delivered"
+                  : " Pending"}
               </span>
 
               <span className={
@@ -243,7 +350,9 @@ export default function Orders() {
                   : "text-red-600"
               }>
                 Payment:
-                {order.paid ? " Paid" : " Pending"}
+                {order.paid
+                  ? " Paid"
+                  : " Pending"}
               </span>
 
             </div>
@@ -251,87 +360,102 @@ export default function Orders() {
             {/* ITEMS */}
             <div className="mt-3 space-y-2">
 
-              {(isEditing ? menu : order.items)
-                .map(item => {
+              {(isEditing
+                ? menu
+                : order.items
+              ).map(item => {
 
-                  const menuItem =
-                    isEditing ? item : null;
+                const menuItem =
+                  isEditing
+                    ? item
+                    : null;
 
-                  const editItem =
-                    isEditing
-                      ? editItems.find(
-                        i => i.menuItemId === menuItem.id
-                      )
-                      : item;
+                const editItem =
+                  isEditing
+                    ? editItems.find(
+                      i =>
+                        i.menuItemId ===
+                        menuItem.id
+                    )
+                    : item;
 
-                  const qty =
-                    isEditing
-                      ? editItem?.quantity || 0
-                      : item.quantity;
+                const qty =
+                  isEditing
+                    ? editItem
+                      ?.quantity || 0
+                    : item.quantity;
 
-                  const name =
-                    isEditing
-                      ? menuItem.name
-                      : item.name;
+                const name =
+                  isEditing
+                    ? menuItem.name
+                    : item.name;
 
-                  const price =
-                    isEditing
-                      ? menuItem.price
-                      : item.price;
+                const price =
+                  isEditing
+                    ? menuItem.price
+                    : item.price;
 
-                  return (
+                return (
 
-                    <div
-                      key={
-                        isEditing
-                          ? menuItem.id
-                          : item.menuItemId
-                      }
-                      className="flex justify-between items-center">
+                  <div
+                    key={
+                      isEditing
+                        ? menuItem.id
+                        : item.menuItemId
+                    }
+                    className="flex justify-between items-center"
+                  >
 
-                      <span>
-                        {name}
-                      </span>
+                    <span>
+                      {name}
+                    </span>
 
-                      {isEditing ? (
+                    {isEditing ? (
 
-                        <div className="flex gap-2">
+                      <div className="flex gap-2">
 
-                          <button
-                            onClick={() =>
-                              decreaseQty(menuItem.id)
-                            }
-                            className="bg-red-500 text-white px-2 rounded">
-                            −
-                          </button>
-
-                          <span>
-                            {qty}
-                          </span>
-
-                          <button
-                            onClick={() =>
-                              increaseQty(menuItem)
-                            }
-                            className="bg-green-600 text-white px-2 rounded">
-                            +
-                          </button>
-
-                        </div>
-
-                      ) : (
+                        <button
+                          onClick={() =>
+                            decreaseQty(
+                              menuItem.id
+                            )
+                          }
+                          className="bg-red-500 text-white px-2 rounded"
+                        >
+                          −
+                        </button>
 
                         <span>
-                          {qty} × SAR {price}
+                          {qty}
                         </span>
 
-                      )}
+                        <button
+                          onClick={() =>
+                            increaseQty(
+                              menuItem
+                            )
+                          }
+                          className="bg-green-600 text-white px-2 rounded"
+                        >
+                          +
+                        </button>
 
-                    </div>
+                      </div>
 
-                  );
+                    ) : (
 
-                })}
+                      <span>
+                        {qty} × SAR{" "}
+                        {price}
+                      </span>
+
+                    )}
+
+                  </div>
+
+                );
+
+              })}
 
             </div>
 
@@ -343,60 +467,92 @@ export default function Orders() {
             {/* ACTIONS */}
             <div className="flex flex-wrap gap-2 mt-3">
 
-              {!order.delivered && !order.paid && !isEditing && (
+              {!order.delivered &&
+                !isEditing && (
 
-                <button
-                  disabled={workingId === order.id}
-                  onClick={() => deliver(order.id)}
-                  className="bg-green-600 text-white px-4 py-2 rounded">
-                  Delivered
-                </button>
+                  <>
+                    <button
+                      disabled={
+                        workingId ===
+                        order.id
+                      }
+                      onClick={() =>
+                        deliver(
+                          order.id
+                        )
+                      }
+                      className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                      Delivered
+                    </button>
 
-              )}
+                    <button
+                      onClick={() =>
+                        startEdit(order)
+                      }
+                      className="bg-blue-600 text-white px-3 py-1 rounded"
+                    >
+                      Edit
+                    </button>
 
-              {order.delivered && !order.paid && !isEditing && (
+                    <button
+                      disabled={
+                        workingId ===
+                        order.id
+                      }
+                      onClick={() =>
+                        remove(
+                          order.id
+                        )
+                      }
+                      className="bg-red-600 text-white px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
 
-                <button
-                  disabled={workingId === order.id}
-                  onClick={() => pay(order.id)}
-                  className="bg-purple-600 text-white px-3 py-1 rounded">
-                  Mark Paid
-                </button>
+                  </>
+                )}
 
-              )}
+              {order.delivered &&
+                !isEditing && (
 
-              {!order.delivered && !isEditing && (
-
-                <>
                   <button
-                    onClick={() => startEdit(order)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded">
-                    Edit
+                    disabled={
+                      workingId ===
+                      order.id
+                    }
+                    onClick={() =>
+                      pay(order.id)
+                    }
+                    className="bg-purple-600 text-white px-3 py-1 rounded"
+                  >
+                    Mark Paid
                   </button>
 
-                  <button
-                    disabled={workingId === order.id}
-                    onClick={() => remove(order.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded">
-                    Delete
-                  </button>
-                </>
-
-              )}
+                )}
 
               {isEditing && (
 
                 <>
                   <button
-                    disabled={workingId === order.id}
-                    onClick={() => saveEdit(order)}
-                    className="bg-green-600 text-white px-3 py-1 rounded">
+                    disabled={
+                      workingId ===
+                      order.id
+                    }
+                    onClick={() =>
+                      saveEdit(order)
+                    }
+                    className="bg-green-600 text-white px-3 py-1 rounded"
+                  >
                     Save
                   </button>
 
                   <button
-                    onClick={cancelEdit}
-                    className="bg-gray-500 text-white px-3 py-1 rounded">
+                    onClick={
+                      cancelEdit
+                    }
+                    className="bg-gray-500 text-white px-3 py-1 rounded"
+                  >
                     Cancel
                   </button>
                 </>
@@ -412,5 +568,7 @@ export default function Orders() {
       })}
 
     </div>
+
   );
+
 }
