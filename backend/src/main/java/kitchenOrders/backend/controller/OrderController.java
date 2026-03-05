@@ -57,6 +57,15 @@ public class OrderController {
         service.markPaid(id);
     }
 
+    @GetMapping("/earnings/range")
+    public double getRangeEarnings(@RequestParam String startDate,@RequestParam String endDate) {
+
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        return service.getRangeEarnings(start, end);
+    }
+
 
 
 

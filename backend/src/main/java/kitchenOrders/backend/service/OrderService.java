@@ -143,4 +143,16 @@ public void markPaid(String id) {
                 .mapToDouble(this::calculateOrderTotal)
                 .sum();
     }
+
+    public double getRangeEarnings(LocalDate startDate, LocalDate endDate) {
+
+        return orderRepo.findAll().stream()
+                .filter(Order::isPaid)
+                .filter(o -> {
+                    LocalDate orderDate = o.getCreatedAt().toLocalDate();
+                    return !orderDate.isBefore(startDate) && !orderDate.isAfter(endDate);
+                })
+                .mapToDouble(this::calculateOrderTotal)
+                .sum();
+    }
 }
