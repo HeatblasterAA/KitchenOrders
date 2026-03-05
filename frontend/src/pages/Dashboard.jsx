@@ -39,8 +39,8 @@ export default function Dashboard() {
       setDaily(dailyRes.data ?? 0);
       setMonthly(monthlyRes.data ?? 0);
 
-    } catch {
-
+    } catch (err) {
+      console.error(err.response?.data || err.message);
       alert("Failed to load dashboard metrics");
     } finally {
       setLoading(false);
@@ -54,15 +54,17 @@ export default function Dashboard() {
       alert("Select both dates");
       return;
     }
+    if (startDate > endDate) {
+      alert("Start date cannot be after end date");
+      return;
+    }
 
     try {
       setRangeLoading(true);
 
-      const res = await api.get("/earnings/range", {
-        params: {
-          startDate,
-          endDate
-        }
+      const res = await api.get("/orders/earnings/range", {
+        params: { startDate, endDate }
+
       });
 
       setRangeTotal(res.data ?? 0);
