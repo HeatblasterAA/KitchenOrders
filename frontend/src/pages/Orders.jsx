@@ -28,18 +28,24 @@ export default function Orders() {
   // Format: Friday
   const getDayName = (dateStr) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString(
-      "en-US",
-      { weekday: "long" }
-    );
+
+    const [date] = dateStr.split("T");
+    const [year, month, day] = date.split("-");
+
+    return new Date(year, month - 1, day)
+      .toLocaleDateString("en-US", { weekday: "long" });
+  };
+  const formatTime = (dateTime) => {
+    if (!dateTime) return "";
+    return dateTime.split("T")[1]?.slice(0, 5);
   };
 
   // Format: DD/MM/YYYY
   const formatDateDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString(
-      "en-GB"
-    );
+    const [date] = dateStr.split("T");
+    const [year, month, day] = date.split("-");
+    return `${day}/${month}/${year}`;
   };
 
   const loadOrders = async () => {
@@ -52,10 +58,8 @@ export default function Orders() {
       const filteredSorted =
         (res.data || [])
           .filter(order => !order.paid)
-          .sort(
-            (a, b) =>
-              new Date(a.deliverBy) -
-              new Date(b.deliverBy)
+          .sort((a, b) =>
+            a.deliverBy.localeCompare(b.deliverBy)
           );
 
       setOrders(filteredSorted);
@@ -319,14 +323,10 @@ export default function Orders() {
             <div className="text-sm text-gray-600 mt-1">
               Order for:{" "}
               <span className="font-semibold">
-                {getDayName(
-                  order.deliverBy
-                )}
+                {getDayName(order.deliverBy)}
               </span>{" "}
               (
-              {formatDateDDMMYYYY(
-                order.deliverBy
-              )}
+              {formatDateDDMMYYYY(order.deliverBy)} at {formatTime(order.deliverBy)}
               )
             </div>
 

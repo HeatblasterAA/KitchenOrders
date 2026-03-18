@@ -25,7 +25,7 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString("en-CA");
       const month = today.slice(0, 7);
 
       const dailyRes = await api.get("/orders/earnings/day", {

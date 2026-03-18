@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function CreateOrder() {
 
   const [menu, setMenu] = useState([]);
+  const [deliveryTime, setDeliveryTime] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState([]);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -74,6 +75,10 @@ export default function CreateOrder() {
       alert("Customer name is required");
       return;
     }
+    if (!deliveryTime) {
+      alert("Delivery time is required");
+      return;
+    }
 
     // items validation
     if (items.length === 0) {
@@ -113,7 +118,7 @@ export default function CreateOrder() {
       await createOrder({
         customerName: customerName.trim(),
         items: fullItems,
-        deliverBy: deliveryDate + "T00:00:00"
+        deliverBy: `${deliveryDate}T${deliveryTime}:00`
       });
 
       navigate("/orders");
@@ -237,6 +242,13 @@ export default function CreateOrder() {
           Delivery Date: {formatDateDDMMYYYY(deliveryDate)}
         </div>
       )}
+      <input
+        type="time"
+        value={deliveryTime}
+        onChange={(e) => setDeliveryTime(e.target.value)}
+        className="border p-2 w-full mt-2"
+        required
+      />
 
       {/* Submit */}
       <button
