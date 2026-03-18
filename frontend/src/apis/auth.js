@@ -1,18 +1,12 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "https://kitchenorders.onrender.com",
-});
+const API = "https://kitchenorders.onrender.com";
 
-// 🔥 attach token automatically
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+export async function login(username, password) {
+  const res = await axios.post(`${API}/auth/login`, {
+    username,
+    password,
+  });
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-export default api;
+  localStorage.setItem("token", res.data.token);
+}
