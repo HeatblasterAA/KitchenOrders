@@ -1,6 +1,6 @@
 spring:
   mongodb:
-    uri: mongodb+srv://HeatblasterAA:Siss1234%23@cluster0.sa68qb2.mongodb.net/kitchenOrders
+    uri: mongodb+srv://goFood:Siss1234@cluster0.dcvadaa.mongodb.net/?appName=Cluster0
     database: kitchenOrders
 server:
   port: ${PORT:8080}
